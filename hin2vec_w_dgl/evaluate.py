@@ -18,8 +18,10 @@ from sklearn import linear_model
 import sklearn.metrics as Metric
 import sys
 
+from dblp_data import data_loader
+
 class EvaluateEmbeds():
-    def __init__(self,dl_pickle='',embed_f='',model='others',dataset='DBLP',data_root='./data/NC/',need_transf=True):
+    def __init__(self,dl_pickle_f='',embed_f='',model='rw',dataset='DBLP',data_root='./data/'):
         """
         初始化，输入dl的pickle地址和embed_f的地址。
         标准形式的embeds 为 np.array 2d， shape是(node_n,embed_d)
@@ -31,32 +33,29 @@ class EvaluateEmbeds():
             用于nc的：将节点所有关系下的拼接作为节点最终嵌入
         :param dl_pickle: dataloader存储地址
         :param embed_f: 嵌入文件存储地址
-        :param model: 模型名，针对HetGNN和GATNE定义特别的读取形式
+        :param model: 模型名，定义特别图嵌入的读取形式
         :param dataset: 默认数据集为DBLP
         :param data_root:数据集所在地址的父目录
-        :param need_transf: 读取到的嵌入是否需要再转换一下
         """
         self.model = model
         # 数据信息
         info_path = os.path.join(data_root,f"{dataset}/info.dat")
         self.data_info = json.load(open(info_path, 'r'))
 
-        # 获取 dl
-        print(dl_pickle)
+        # 获取 data_loader
         if dl_pickle_f != '' and os.path.exists(dl_pickle_f) :
             self.dl = pickle.load(open(dl_pickle_f, 'rb'))
             print(f'Info: load {dataset} from {dl_pickle_f}')
         else:
-            self.dl = data_loader(os.path.join(root_dir, f"data/NC/{dataset}"))
-            # pickle.dump(self.dl, open(dl_pickle_f, 'wb'),protocol=3)
+            self.dl = data_loader(os.path.join(data_root, f"{dataset}"))
             print(f'Info: load {dataset} from original data')
 
         node_n = self.dl.nodes['total']
         node_shift = self.dl.nodes['shift']
-
+        
         # 获取embeds
-
-
+        if model == "rw": # 默认为随机游走
+            self.embeds = pickle.load(open(embed_f, 'rb'))
 
     def do_nc(self):
         """
